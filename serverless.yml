@@ -1,0 +1,27 @@
+service: test
+
+provider:
+  name: aws
+  runtime: python3.9
+  region: ap-northeast-1
+  profile: rsw
+  stage: ${opt:stage, "dev"}
+
+custom:
+  dev:
+    debug: true
+    foo: ${ssm:/${sls:stage}/test/foo, null}
+
+functions:
+  echo:
+    package:
+      include:
+        - echo/handler.py
+      exclude:
+        - '**'
+    handler: echo/handler.main
+    timeout: 10
+    memorySize: 128
+    environment:
+      DEBUG: ${self:custom.${sls:stage}.debug, null}
+      foo: ${self:custom.${sls:stage}.foo, null}
